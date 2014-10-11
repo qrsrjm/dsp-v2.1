@@ -486,6 +486,7 @@ int DspAllByPass(void);
 
 void readArchiveInitDsp();
 void archiveInitDsp();
+int reLoadArchive(char *name);
 
 
 

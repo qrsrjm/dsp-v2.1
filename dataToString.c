@@ -3,8 +3,18 @@
 #include <string.h>
 #include <stdio.h>
 
+
 #include "lrx.h"
 #include "g_variable.h"
+
+
+//#include <stdarg.h>
+//void va_start(va_list ap, last); 
+//type va_arg(va_list ap, type); 
+//void va_end(va_list ap); 
+//void va_copy(va_list dest, va_list src);
+
+
 
 void versionToString(char *p, char *dest)
 {
@@ -31,13 +41,15 @@ void crossbar1ToString(Crossbar_STR ptr[][6], char *dest)
 {
     char tmp[64]={0};
     int len=0;
-    int i;
-    Crossbar_STR *p = ptr;
-    for(i=0;i<12;i++,p+=1) {
-        memset(tmp,0,64);
-        sprintf(tmp,"crossbar%d,%d,%f,",p->in,p->out,p->mix);
-        strcpy(dest+len,tmp);
-        len += strlen(tmp);
+    int i,j;
+
+    for(i=0;i<2;i++) {
+        for(j=0;j<6;j++) {
+            memset(tmp,0,64);
+            sprintf(tmp,"crossbar%d,%d,%f,",ptr[i][j].in,ptr[i][j].out,ptr[i][j].mix);
+            strcpy(dest+len,tmp);
+            len += strlen(tmp);
+        }
     }
 
     printf("\n%s,len=%d\n",dest,strlen(dest));
@@ -664,21 +676,21 @@ int main()
 
 #if 1 //test info show
 
-void showInputVol(VOL_OP *p)
+void showInputVol1(VOL_OP *p)
 {
 	int i;
     for(i=0;i<3;i++,p+=1)
         printf("vol_%d %d,%f,%d,%d,\n",i,p->Ch,p->vol.Gain, p->vol.Pol,p->vol.Mute);
 }
 
-void showOutputVol(fp32 *p)
+void showOutputVol1(fp32 *p)
 {
 	int i;
     for(i=0;i<6;i++,p+=1)
 		printf("outVol_%d %f,\n",i,*p);
 }
 
-void showOutDly(Outdly *p)
+void showOutDly1(Outdly *p)
 {
 	int i;
     for(i=0;i<6;i++,p+=1)
@@ -695,7 +707,7 @@ void showEQ(EQOP_STR *p)
     }
 }
 
-void showAchEQ(EQOP_STR *p)
+void showAchEQ1(EQOP_STR *p)
 {
 	 int i;	 
 	 for(i=0;i<48;i++,p+=1)	{//48¸ö
@@ -704,7 +716,7 @@ void showAchEQ(EQOP_STR *p)
 	 }
 }
 
-void showBchEQ(EQOP_STR p[][7])
+void showBchEQ1(EQOP_STR p[][7])
 {
 	 int i,j;	 
 	 for(i=0;i<2;i++)
@@ -715,14 +727,14 @@ void showBchEQ(EQOP_STR p[][7])
 }
 
 
-void showLimit(LimiterOP_STR *p)
+void showLimit1(LimiterOP_STR *p)
 {
 	int i;
     for(i=0;i<6;i++,p+=1)
         printf("limit_%d %d,%f,%f,%f,%f,%d,\n",i,p->Ch,p->limiter.T2,p->limiter.k2,p->limiter.Attack,p->limiter.Release,p->limiter.en);
 }
 
-void show3D(Music3DOp_STR *p)
+void show3D1(Music3DOp_STR *p)
 {
 	int i;
     for(i=0;i<2;i++,p+=1)     
@@ -743,7 +755,7 @@ void showAgc(DRC_STR *p)
     printf("agc %f,%f,%f,%f,%d,\n",p->T2,p->k2,p->Attack,p->Release,p->en);
 }
 
-void showSct(SCTDATA_STR *p)
+void showSct1(SCTDATA_STR *p)
 {
 	int i;
     for(i=0;i<2;i++,p+=1) {
@@ -759,7 +771,7 @@ void showSct(SCTDATA_STR *p)
 	}
 }
 
-void showHLpf(CHanHLPF_STR *p, uint8_t hl)
+void showHLpf1(CHanHLPF_STR *p, uint8_t hl)
 {
 	int i;
 	if (hl) {
@@ -773,7 +785,7 @@ void showHLpf(CHanHLPF_STR *p, uint8_t hl)
 	}
 }
 
-void showBpf(BPF_OP *p)
+void showBpf1(BPF_OP *p)
 {   
     int i;
     //for(i=0;i<2;i++,p+=1) {
@@ -781,22 +793,117 @@ void showBpf(BPF_OP *p)
     //}
 }
 
-void showAD(AnaOrDigSrc_STR *p)
+void showAD1(AnaOrDigSrc_STR *p)
 {
 	printf("ad %d,%f,\n",p->en,p->mixer);
 }
 
 
-void showCrossbar1(Crossbar_STR *p)
+void showCrossbar11(Crossbar_STR ptr[][6])
 {
-	int i;
-	for(i=0;i<12;i++,p+=1)
-		printf("crossbar_%d %d,%d,%f,\n",i,p->in,p->out,p->mix);
+	int i,j;
+	for(i=0;i<2;i++)
+        for(j=0;j<6;j++)
+		printf("crossbar_%d %d,%d,%f,\n",i,ptr[i][j].in,ptr[i][j].out,ptr[i][j].mix);
 }
 
 
 
+void showInputVol(int dr)
+{
+    if (dr) 
+        showInputVol1(rDspInfo->vol);
+    else 
+        showInputVol1(dspInfo.vol);
+}
 
+void showOutputVol(int dr)
+{
+    if (dr) 
+        showOutputVol1(rDspInfo->outVol);
+    else
+        showOutputVol1(dspInfo.outVol);
+}
+
+void showOutDly(int dr)
+{
+    if (dr)
+        showOutDly1(rDspInfo->outDly);
+    else
+        showOutDly1(dspInfo.outDly);
+}
+
+void showAchEQ(int dr)
+{
+    if (dr)
+        showAchEQ1(rDspInfo->achEQ);
+    else
+        showAchEQ1(dspInfo.achEQ);
+}
+
+void showBchEQ(int dr)
+{
+    if (dr)
+        showBchEQ1(rDspInfo->bchEQ);
+    else
+        showBchEQ1(dspInfo.bchEQ);
+}
+
+
+void showLimit(int dr)
+{
+    if (dr)
+        showLimit1(rDspInfo->limit);
+    else
+        showLimit1(dspInfo.limit);
+}
+void show3D(int dr)
+{
+    if (dr)
+        show3D1(rDspInfo->m3D);
+    else
+        show3D1(dspInfo.m3D);
+}
+
+void showSct(int dr)
+{
+    if (dr)
+        showSct1(rDspInfo->sct);
+    else
+        showSct1(dspInfo.sct);
+}
+
+void showHLpf(int dr)
+{
+    if (dr)
+        showHLpf1(rDspInfo->hpf, 1);
+    else
+        showHLpf1(dspInfo.hpf, 1);
+}
+
+void showBpf(int dr)
+{
+    if (dr)
+        showBpf1(&(rDspInfo->bpf));
+    else
+        showBpf1(&(dspInfo.bpf));
+}
+
+void showAD(int dr)
+{
+    if (dr)
+        showAD1(&(rDspInfo->ad));
+    else
+        showAD1(&(dspInfo.ad));
+}
+
+void showCrossbar1(int dr)
+{
+    if (dr)
+        showCrossbar11(rDspInfo->crossbar1);
+    else
+        showCrossbar11(dspInfo.crossbar1);
+}
 
 #endif //test info show
 

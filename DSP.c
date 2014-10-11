@@ -3305,7 +3305,8 @@ int DspBCHPEQ(EQOP_STR *PEQOP)
 
     repBCHEQ(PEQOP);
 
-
+    if (PEQOP->no >= 7 || PEQOP->Ch >= 2) return -1;
+        
 	if (1 == PEQOP->peq.en)
 	{
 		switch (PEQOP->peq.Type) 
@@ -3792,6 +3793,7 @@ int DspAllByPass(void)
     printf("-->%s> \n",__FUNCTION__);
 #endif
 
+    memset(&dspInfo,0,sizeof(dspInfo));
 
 #if 1    
 	//HP bypass
@@ -3932,10 +3934,11 @@ void archiveInitDsp()
 
     printf("3D\n");   
     //3D
-    for(i=0;i<2;i++)
+    for(i=0;i<2;i++) {
         Dsp3DMusicDelay(rDspInfo->m3D[i].delay, rDspInfo->m3D[i].Ch);
-    Dsp3DMusicEn(rDspInfo->m3D[i].en, rDspInfo->m3D[i].Ch);
-
+        Dsp3DMusicEn(rDspInfo->m3D[i].en, rDspInfo->m3D[i].Ch);
+    }
+    
     printf("sct\n");    
     //SCT
     for(i=0;i<2;i++) {
@@ -4017,8 +4020,11 @@ void archiveInitDsp()
 void readArchiveInitDsp()
 {
     int res;
+    
+    initDspInfo();
     res = readArchiveHead();
-    if (res) {
+    printf("-->%s> res=%d\n",__FUNCTION__,res);
+    if (-1 != res) {
         archiveInitDsp();
     } else {
         DspAllByPass();
@@ -4026,8 +4032,20 @@ void readArchiveInitDsp()
 }
 
 
+int reLoadArchive(char *name)
+{
+    printf("-->%s> ",__FUNCTION__);
 
-
+    if (name == NULL) return -4;
+    if (*name == '\0') return -3;
+    
+    int ret = readArchive(name);
+    if (ret >= 0) {
+        archiveInitDsp();
+    }
+    printf(" name=%s, ret=%d\n",name,ret);
+    return ret;
+}
 
 void readACHEQ(uint8 Ch, uint8 no, uint32 peqCoef[5])
 {

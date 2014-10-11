@@ -9,8 +9,8 @@
 void repCrossBar(Crossbar_STR *p)
 {
 	if (p->in >= 2 || p->out >= 6) return;
-    dspInfo.crossbar1[p->in][p->out].in = p->in;
-    dspInfo.crossbar1[p->in][p->out].out = p->out;
+    //dspInfo.crossbar1[p->in][p->out].in = p->in;
+    //dspInfo.crossbar1[p->in][p->out].out = p->out;
     dspInfo.crossbar1[p->in][p->out].rd = p->rd;
     dspInfo.crossbar1[p->in][p->out].mix = p->mix;
 }

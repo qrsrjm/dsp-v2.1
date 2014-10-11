@@ -11,7 +11,8 @@
 int addName(char Aname[NAME_CNT][NAME_LEN], char *name)
 {
 	int i;
-    if (name == NULL) return -1;
+    if (*name=='\0') return -1;
+    if (name == NULL) return -4;
     if (strlen(name)> 19) return -2;
 	for(i=0;i<NAME_CNT;i++) {
 		if (Aname[i][0] == '\0') {
@@ -26,7 +27,8 @@ int addName(char Aname[NAME_CNT][NAME_LEN], char *name)
 int delName(char Aname[NAME_CNT][NAME_LEN], char *name)
 {
 	int i;
-    if (name == NULL) return -1;
+    if (*name == '\0') return -1;
+    if (name==NULL) return -4;
 	for(i=0;i<NAME_CNT;i++) {
 		if (0 == strcmp(Aname[i],name)) {
 			memset(Aname[i],0,NAME_LEN);
@@ -40,7 +42,8 @@ int findName(char Aname[NAME_CNT][NAME_LEN], char *name)
 {
 	int i;
 	if (Aname[0][0] == '\0') return -2;
-	if (name == NULL) return -3;
+	if (*name == '\0') return -3;
+    if (name==NULL) return -4;
 	for(i=0;i<NAME_CNT;i++) {
 		if (0 == strcmp(Aname[i],name)) {
 			return i;
@@ -79,7 +82,7 @@ void showName(char Aname[NAME_CNT][NAME_LEN])
 {
 	int i;
 	for(i=0;i<NAME_CNT;i++) {
-		printf("%s\n",Aname[i]);
+		printf("<%d> %s\n",i,Aname[i]);
 	}
 }
 
@@ -118,7 +121,7 @@ int readNameList(char Aname[NAME_CNT][NAME_LEN])
 
 int changeStartName(MACINFO *mac, char *name)
 {
-	if (name == NULL || strlen(name)>19) return -1;
+	if (*name == '\0' || strlen(name)>19 ||name==NULL) return -1;
 	strncpy(mac->name,name,19);
     mac->name[19]='\0';
 	flash_write_archive((char*)mac, MACINF_ADDR, sizeof(MACINFO));
@@ -145,13 +148,33 @@ int readArchiveHead()
     printf("rm=%d,rn=%d\n",rM,rN);
     
     //DspAllByPass();
-    
+
+
+    int ret;
+    if (rM == -1 && rN == 0) {
+        ret = readArchive(machine.archiveName[0]);
+        if (ret >= 0) {	    
+            res = ret;   //initArchive();
+        } else {
+            res = -1;   //DspAllByPass();
+        }
+    } else if (rM == 0 && rN == 0) {
+        ret = readArchive(machine.macInfo.name);
+        if (ret >= 0) {		    
+            res = ret;   //initArchive();
+        } else {
+            res = -1;   //DspAllByPass();
+        }
+    } else if (rM == -1 && rN == -1) {
+        res = -1;   //DspAllByPass();
+    } 
+#if 0    
     int ret;
     if (rM == -1 && rN == 0) {
         ret = findName(machine.archiveName, machine.archiveName[0]); 
         if (ret >= 0) {
 		    flash_read_archive((char*)rDspInfo, DATA_ADDRX(ret), sizeof(STR_DSP));
-            res = 1;   //initArchive();
+            res = ret;   //initArchive();
         } else {
             res = -1;   //DspAllByPass();
         }
@@ -159,17 +182,17 @@ int readArchiveHead()
         ret = findName(machine.archiveName, machine.macInfo.name); 
         if (ret >= 0) {
 		    flash_read_archive((char*)rDspInfo, DATA_ADDRX(ret), sizeof(STR_DSP));
-            res = 1;   //initArchive();
+            res = ret;   //initArchive();
         } else {
             res = -1;   //DspAllByPass();
         }
     } else if (rM == -1 && rN == -1) {
         res = -1;   //DspAllByPass();
     } 
-
+#endif
     machine.readDspInfo = rDspInfo;
     
-    printf("firmwareDownload finish\n");
+    printf("read Archive head finish. ret=%d\n",ret);
 
     return res; 
 }
@@ -180,8 +203,12 @@ int readArchive(char *name)
     showName(machine.archiveName);
     int ret = findName(machine.archiveName, name);
     if (ret >= 0) {
-        flash_read_archive((char*)rDspInfo, DATA_ADDRX(ret), sizeof(STR_DSP));        
+        memset((char*)rDspInfo, 0, sizeof(STR_DSP));
+        memset((char*)&dspInfo, 0, sizeof(STR_DSP));
+        flash_read_archive((char*)rDspInfo, DATA_ADDRX(ret), sizeof(STR_DSP)); 
+        memcpy(&dspInfo,rDspInfo,sizeof(STR_DSP));
     } 
+    printf("\n-->%s> name=%s,ret=%d\n",__FUNCTION__,name,ret);
     return ret;
 }
 
