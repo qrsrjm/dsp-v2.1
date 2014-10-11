@@ -1,0 +1,27 @@
+
+
+#CC=gcc 
+
+SRCS= ctrlDsp.c TAS3xxxDownload.c DSP.c I2C.c UserMath.c DataStg.c TAS3xxx.c    
+OBJS=$(patsubst %.c,%.o,$(SRCS) ) 
+
+%.o:%.c 
+	$(CC) -fPIC -c  $< -o $@ -g -std=c99
+
+.PHONY:all clean
+all:ctrlDsp.so webDsp
+
+ctrlDsp.so:$(OBJS)
+	$(CC) -shared -fPIC -o ctrlDsp.so $(OBJS) -lm -g -std=c99
+	
+webDsp:main.o
+	$(CC) -fPIC -o webDsp main.c ctrlDsp.so -lm -g -std=c99
+	
+clean:
+	rm *.o *.so webDsp -rf
+
+
+
+
+
+
